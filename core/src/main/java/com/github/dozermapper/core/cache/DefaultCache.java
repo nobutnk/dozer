@@ -15,6 +15,7 @@
  */
 package com.github.dozermapper.core.cache;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -30,7 +31,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 public class DefaultCache<KeyType, ValueType> implements Cache<KeyType, ValueType> {
 
     private final String name;
-    private final LRUMap cacheMap;
+    private final Map<KeyType, CacheEntry<KeyType, ValueType>> cacheMap;
+    private final int maximumSize;
 
     /**
      * Default cache manager implementation backed by {@link LRUMap}
@@ -44,7 +46,8 @@ public class DefaultCache<KeyType, ValueType> implements Cache<KeyType, ValueTyp
         }
 
         this.name = name;
-        this.cacheMap = new LRUMap(maximumSize); //Should be: Collections.synchronizedMap
+        this.maximumSize = maximumSize;
+        this.cacheMap = Collections.synchronizedMap(new LRUMap(maximumSize)); //Should be: Collections.synchronizedMap
     }
 
     /**
@@ -106,7 +109,7 @@ public class DefaultCache<KeyType, ValueType> implements Cache<KeyType, ValueTyp
      */
     @Override
     public int getMaxSize() {
-        return cacheMap.getMaximumSize();
+        return this.maximumSize;
     }
 
     /**
@@ -137,10 +140,6 @@ public class DefaultCache<KeyType, ValueType> implements Cache<KeyType, ValueTyp
         @Override
         protected boolean removeEldestEntry(Map.Entry<KeyType, CacheEntry<KeyType, ValueType>> eldest) {
             return size() > maximumSize;
-        }
-
-        private int getMaximumSize() {
-            return maximumSize;
         }
     }
 }
