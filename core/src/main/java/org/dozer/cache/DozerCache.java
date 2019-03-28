@@ -22,6 +22,7 @@ import org.dozer.stats.StatisticType;
 import org.dozer.stats.StatisticsManager;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +37,8 @@ public class DozerCache<KeyType, ValueType> implements Cache<KeyType, ValueType>
 
   private final String name;
 
-  private final LRUMap cacheMap;
+  private final Map<KeyType, CacheEntry<KeyType, ValueType>> cacheMap;
+  private final int maximumSize;
 
   StatisticsManager statMgr = GlobalStatistics.getInstance().getStatsMgr();
 
@@ -45,7 +47,9 @@ public class DozerCache<KeyType, ValueType> implements Cache<KeyType, ValueType>
       throw new IllegalArgumentException("Dozer cache max size must be greater than 0");
     }
     this.name = name;
-    this.cacheMap = new LRUMap(maximumSize); // TODO This should be in Collections.synchronizedMap()
+    //this.cacheMap = new LRUMap(maximumSize); // TODO This should be in Collections.synchronizedMap()
+    this.cacheMap = Collections.synchronizedMap(new LRUMap(maximumSize));
+    this.maximumSize = maximumSize;
   }
 
   public void clear() {
@@ -80,7 +84,7 @@ public class DozerCache<KeyType, ValueType> implements Cache<KeyType, ValueType>
     }
   }
 
-  public Collection<CacheEntry<KeyType, ValueType>> getEntries() {
+  Collection<CacheEntry<KeyType, ValueType>> getEntries() {
     return cacheMap.values();
   }
 
@@ -93,14 +97,14 @@ public class DozerCache<KeyType, ValueType> implements Cache<KeyType, ValueType>
   }
 
   public long getMaxSize() {
-    return cacheMap.maximumSize;
+    return this.maximumSize;
   }
 
   public boolean containsKey(KeyType key) {
     return cacheMap.containsKey(key);
   }
 
-  public Set<KeyType> keySet() {
+  Set<KeyType> keySet() {
     return cacheMap.keySet();
   }
 
